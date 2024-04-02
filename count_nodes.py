@@ -5,8 +5,10 @@ import requests
 # Define the Overpass API endpoint
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
-# Define the bounding box for Brooklyn, NY
-brooklyn_bbox = "40.551042, -74.05663, 40.739446, -73.833365"
+# Define the bounding box 
+# Format: "min_latitude, min_longitude, max_latitude, max_longitude"
+# You can use http://bboxfinder.com/  IMPORTANT: switch "coordinate format" to "Lat / Lng"
+bbox = "40.551042, -74.05663, 40.739446, -73.833365"
 
 # List of usernames to query
 usernames = [
@@ -31,7 +33,7 @@ for username in usernames:
     query = f"""
     [out:json];
     (
-      node(user:"{username}")({brooklyn_bbox});
+      node(user:"{username}")({bbox});
     );
     out count;
     """
@@ -60,20 +62,8 @@ pd.DataFrame(user_node_counts.items(), columns=["Username", "Node_Count"]).to_cs
 )
 
 # %%
+# start the server connect to http://0.0.0.0:8000/ in a web browser
+
 !python -m http.server
-
+ 
 # %%
-import geopandas as gpd
-from shapely.geometry import box
-
-# Define the bounding box for Brooklyn, NY
-# Format: south latitude, west longitude, north latitude, east longitude
-brooklyn_bbox = "40.551042, -74.05663, 40.739446, -73.833365"
-south, west, north, east = map(float, brooklyn_bbox.split(", "))
-
-# Create a Polygon from the bounding box using `box`
-bbox_polygon = box(west, south, east, north)
-
-# Create a GeoDataFrame
-gdf = gpd.GeoDataFrame(geometry=[bbox_polygon], crs="EPSG:4326")
-gdf.explore()

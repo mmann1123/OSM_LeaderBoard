@@ -15,6 +15,7 @@ gdf = gpd.GeoDataFrame(geometry=[bbox_polygon], crs="EPSG:4326")
 gdf.explore()
 
 # %%
+
 import requests
 
 # Define the Overpass API endpoint

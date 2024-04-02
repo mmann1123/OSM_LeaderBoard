@@ -1,0 +1,20 @@
+body {
+    background-color: #333;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+#leaderboard {
+    margin-top: 20px;
+}
+
+.leaderboard-entry {
+    margin-bottom: 5px;
+}
+
+/* Leaflet Map Dark Theme */
+.leaflet-container {
+    background: #2b2b2b;
+}

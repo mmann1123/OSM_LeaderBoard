@@ -60,6 +60,8 @@ pd.DataFrame(user_node_counts.items(), columns=["username", "nodecount"]).to_csv
 )
 
 # %%
+!python -m http.server
+
 # %%
 import geopandas as gpd
 from shapely.geometry import box

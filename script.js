@@ -22,24 +22,26 @@ const csvUrl = 'https://mmann1123.github.io/OSM_LeaderBoard/user_node_counts.csv
 fetch(csvUrl)
     .then(response => response.text())
     .then(csvText => {
-        // Parse the CSV data
+        console.log("Raw CSV Text:", csvText); // Debugging Step 1
+
         const data = Papa.parse(csvText, {
             header: true,
             skipEmptyLines: true
         }).data;
-        console.log(data); // Log the parsed data to debug
 
-        // Convert parsed data into the users object
+        console.log("Parsed Data:", data); // Debugging Step 2
+
         let users = {};
         data.forEach(row => {
-            // Assuming columns are named "Username" and "Node_Count"
+            console.log("Row:", row); // Additional debugging to inspect each row
+            // Double-check these column names match exactly
             users[row.username] = parseInt(row.nodecount, 10);
         });
 
-        // Sort users by count in descending order
+        console.log("Users Object:", users); // To see the final users object
+
         var sortedUsers = Object.keys(users).sort(function (a, b) { return users[b] - users[a]; });
 
-        // Display the leaderboard
         var leaderboardDiv = document.getElementById('leaderboard');
         sortedUsers.forEach(function (user) {
             var div = document.createElement('div');
@@ -49,7 +51,6 @@ fetch(csvUrl)
         });
     })
     .catch(error => console.error('Error fetching or parsing CSV:', error));
-
 
 
 // // Initialize the map

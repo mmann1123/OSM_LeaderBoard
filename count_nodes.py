@@ -1,20 +1,4 @@
 # %%
-import geopandas as gpd
-from shapely.geometry import box
-
-# Define the bounding box for Brooklyn, NY
-# Format: south latitude, west longitude, north latitude, east longitude
-brooklyn_bbox = "40.551042, -74.05663, 40.739446, -73.833365"
-south, west, north, east = map(float, brooklyn_bbox.split(", "))
-
-# Create a Polygon from the bounding box using `box`
-bbox_polygon = box(west, south, east, north)
-
-# Create a GeoDataFrame
-gdf = gpd.GeoDataFrame(geometry=[bbox_polygon], crs="EPSG:4326")
-gdf.explore()
-
-# %%
 
 import requests
 
@@ -69,5 +53,25 @@ for username in usernames:
 
 # Print the resulting dictionary
 print("Node counts by user:", user_node_counts)
+import pandas as pd
+
+pd.DataFrame(user_node_counts.items(), columns=["Username", "Node_Count"]).to_csv(
+    "user_node_counts.csv", index=False
+)
 
 # %%
+# %%
+import geopandas as gpd
+from shapely.geometry import box
+
+# Define the bounding box for Brooklyn, NY
+# Format: south latitude, west longitude, north latitude, east longitude
+brooklyn_bbox = "40.551042, -74.05663, 40.739446, -73.833365"
+south, west, north, east = map(float, brooklyn_bbox.split(", "))
+
+# Create a Polygon from the bounding box using `box`
+bbox_polygon = box(west, south, east, north)
+
+# Create a GeoDataFrame
+gdf = gpd.GeoDataFrame(geometry=[bbox_polygon], crs="EPSG:4326")
+gdf.explore()

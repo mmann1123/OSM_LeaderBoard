@@ -1,3 +1,7 @@
+// gets the number of nodes created by a list of users in a specific area
+// execute:
+// node queryOSM.mjs
+
 // const fetch = require('node-fetch');
 import fetch from 'node-fetch';
 

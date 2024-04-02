@@ -35,7 +35,7 @@ fetch(csvUrl)
         data.forEach(row => {
             console.log("Row:", row); // Additional debugging to inspect each row
             // Double-check these column names match exactly
-            users[row.username] = parseInt(row.nodecount, 10);
+            users[row.Username] = parseInt(row.Node_Count, 10);
         });
 
         console.log("Users Object:", users); // To see the final users object

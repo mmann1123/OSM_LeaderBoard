@@ -55,7 +55,7 @@ for username in usernames:
 print("Node counts by user:", user_node_counts)
 import pandas as pd
 
-pd.DataFrame(user_node_counts.items(), columns=["username", "nodecount"]).to_csv(
+pd.DataFrame(user_node_counts.items(), columns=["Username", "Node_Count"]).to_csv(
     "user_node_counts.csv", index=False
 )
 

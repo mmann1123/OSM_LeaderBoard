@@ -58,6 +58,11 @@ for username in usernames:
 # Print the resulting dictionary
 print("Node counts by user:", user_node_counts)
 import pandas as pd
+# if results exist delete file
+try:
+    os.remove("user_node_counts.csv")
+except:
+    pass
 
 pd.DataFrame(user_node_counts.items(), columns=["Username", "Node_Count"]).to_csv(
     "user_node_counts.csv", index=False

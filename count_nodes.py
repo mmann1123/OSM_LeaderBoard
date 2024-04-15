@@ -1,5 +1,10 @@
 # %%
-
+import dash
+from dash import html, dcc
+import pandas as pd
+import geopandas as gpd
+from dash.dependencies import Input, Output
+from dash import dash_table
 import requests
 import os
 
@@ -74,13 +79,9 @@ out = out.sort_values(by="Node_Count", ascending=False)
 out
 out.to_csv("./user_node_counts.csv", index=False)
 
-# %% create python dashboard
-import dash
-from dash import html, dcc
-import pandas as pd
-import geopandas as gpd
-from dash.dependencies import Input, Output
-from dash import dash_table
+########################################################################################
+#  create python dashboard
+
 
 # Initialize the Dash app
 app = dash.Dash(__name__)
@@ -140,7 +141,7 @@ app.layout = html.Div(
 
 # Run the server
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=False)
 
 print("Run the server and connect to http://127.0.0.1:8050/")
 

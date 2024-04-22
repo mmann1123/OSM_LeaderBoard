@@ -30,6 +30,7 @@ usernames = [
     "o_paq",
     "DuckDuckCat",
     "ryleeloveshot",
+    "norabutter",
 ]
 
 # Initialize a dictionary to store the count of nodes added by each user

@@ -7,31 +7,17 @@ from dash.dependencies import Input, Output
 from dash import dash_table
 import requests
 import os
+import yaml
+
+# Load configuration from config.yaml
+with open("config.yaml", "r") as file:
+    config = yaml.safe_load(file)
+
+bbox = config["bbox"]
+usernames = config["usernames"]
 
 # Define the Overpass API endpoint
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
-
-# Define the bounding box
-# Format: "min_latitude, min_longitude, max_latitude, max_longitude"
-# You can use http://bboxfinder.com/  IMPORTANT: switch "coordinate format" to "Lat / Lng"
-bbox = "40.551042, -74.05663, 40.739446, -73.833365"
-
-# List of usernames to query
-usernames = [
-    "mmann1123",
-    "haycam",
-    "I-Izzo",
-    "isamah",
-    "livmakesmaps",
-    "kangaroo5445",
-    "brikin",
-    "caitnahc",
-    "KQWilson",
-    "o_paq",
-    "DuckDuckCat",
-    "ryleeloveshot",
-    "norabutter",
-]
 
 # Initialize a dictionary to store the count of nodes added by each user
 user_node_counts = {}
@@ -71,29 +57,26 @@ try:
 except:
     pass
 
-# convert Node_count to intergers using dictionary comprehension
+# convert Node_count to integers using dictionary comprehension
 user_node_counts = {k: int(v) for k, v in user_node_counts.items()}
 
 out = pd.DataFrame(user_node_counts.items(), columns=["Username", "Node_Count"])
 # sort in descending order
-out = out.sort_values(by="Node_Count", ascending=False)
-out
-out.to_csv("./user_node_counts.csv", index=False)
+df = out.sort_values(by="Node_Count", ascending=False)
+# out.to_csv("./user_node_counts.csv", index=False)
 
 ########################################################################################
 #  create python dashboard
-
 
 # Initialize the Dash app
 app = dash.Dash(__name__)
 
 # Load your CSV data into DataFrame
-df = pd.read_csv(
-    "user_node_counts.csv"
-)  # Replace 'path_to_your_file.csv' with the actual path to your CSV file
+# df = pd.read_csv(
+#     "user_node_counts.csv"
+# )  # Replace 'path_to_your_file.csv' with the actual path to your CSV file
 
 # Create a simple GeoDataFrame with a bounding box
-# Replace these coordinates with the ones for your specific bounding box
 min_lat, min_lon, max_lat, max_lon = map(float, bbox.split(","))
 
 # Create a simple GeoDataFrame with a bounding box
@@ -146,9 +129,9 @@ if __name__ == "__main__":
 
 print("Run the server and connect to http://127.0.0.1:8050/")
 
-# %% JS CODE VERSION NOT WORKING WELL
-# start the server connect to http://0.0.0.0:8000/ in a web browser
-
-# !python -m http.server
-
 # %%
+# build the app with pyinstaller
+# pyinstaller --onefile --name leaderboard_linux --add-data "config.yaml:." build_app_script.py
+# cd dist
+# chmod +x leaderboard_linux
+# ./leaderboard_linux

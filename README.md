@@ -1,59 +1,61 @@
 # OSM_LeaderBoard
+This is a Dash application that creates a leaderboard of OpenStreetMap contributors based on the number of nodes they have contributed for a given bounding box and time period.
 
-## Install Python and Dependencies
+## Installation
 
-### First Time Setup
-1) Install Anaconda Python 3.7 from [https://www.anaconda.com/distribution/](https://www.anaconda.com/distribution/)
-
-2) OSX: Open Terminal
-   Windows: Open Anaconda Prompt
-
-3) Create a new environment:
-    
-    ``` bash
-    conda create -n osm_leaderboard python=3.7 dash geopandas -y
+1. Clone this repository:
+    ```bash
+    git clone https://github.com/mmann1123/OSM_LeaderBoard.git
     ```
-### Every Time To Run   
-
-1) Edit `count_nodes.py` in a text editor:
-
-A) Update the user names list:
-
-    ``` python
-    # List of usernames to query
-    usernames = [
-        "username",
-        "anothername",
-    ]
+2. Navigate to the project directory:
+    ```bash
+    cd yourrepository
+    ```
+3. Install the required packages:
+    ```bash
+    pip install -r requirements.txt
     ```
 
-B) Change the bounding box for your query:
+## Configuration
 
-    ``` python
-    bbox = "40.551042, -74.05663, 40.739446, -73.833365"
+The application is configured through a `config.yaml` file. Here's what each configuration option does:
+
+- `bbox`: This is the bounding box for the area you're interested in. It should be a string with four comma-separated numbers representing the latitude and longitude of the southwest and northeast corners of the bounding box, respectively. For example: `"40.551042, -74.05663, 40.739446, -73.833365"`.
+
+> Note: You can use [http://bboxfinder.com/](http://bboxfinder.com/)  
+switch "coordinate format" to "Lat / Lng"
+
+- `usernames`: This is a list of usernames that the application will use to do XYZ. Each username should be a string. For example:
+    ```yaml
+    usernames:
+      - mmann1123
+      - ...
+      - ...
+
     ```
 
-    Format: "min_latitude, min_longitude, max_latitude, max_longitude"
-    You can use [http://bboxfinder.com/](http://bboxfinder.com/)  
-    **IMPORTANT:** switch "coordinate format" to "Lat / Lng"
+- `newer_than_date`: This is an optional configuration option. If provided, the application will only consider data newer than this date. The date should be a string in the format `"YYYY-MM-DD"`. For example: `"2024-05-01"`.
 
-2) OSX: Open Terminal
-   Windows: Open Anaconda Prompt
+An example `config.yaml` file might look like this:
 
-3) Activate the environment:
+```yaml
+bbox: "40.551042, -74.05663, 40.739446, -73.833365"
+usernames:
+  - mmann1123
+  - haycam
+  - I-Izzo
+  - isamah
+newer_than_date: "2010-12-01"   
+```
 
-    ``` bash
-    conda activate osm_leaderboard
-    ```
-4) Change to the directory where you cloned the repository:
 
-    ``` bash
-    cd path/to/OSM_LeaderBoard
-    ```
-5) Run the leaderboard:
+## Running the Application
 
-    ``` bash
-    python count_nodes.py
-    ```
-6) Open a web browser and navigate to  [http://127.0.0.1:8050/](http://127.0.0.1:8050/) 
+To run the application, use the following command:
 
+```bash
+cd OSM_LeaderBoard
+python dash_app.py
+```
+
+In the browser window select or drag your `config.yaml` file to the upload box. The leaderboard will be displayed in the browser window once the api calls are complete.

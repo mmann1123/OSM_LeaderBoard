@@ -8,3 +8,5 @@ dash_uploader
 dash_table 
 plotly  
 shapely
+multiprocessing
+webbrowser

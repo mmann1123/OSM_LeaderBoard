@@ -51,11 +51,11 @@ for username in usernames:
 print("Node counts by user:", user_node_counts)
 import pandas as pd
 
-# if results exist delete file
-try:
-    os.remove("./user_node_counts.csv")
-except:
-    pass
+# # if results exist delete file
+# try:
+#     os.remove("./user_node_counts.csv")
+# except:
+#     pass
 
 # convert Node_count to integers using dictionary comprehension
 user_node_counts = {k: int(v) for k, v in user_node_counts.items()}

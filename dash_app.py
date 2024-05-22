@@ -9,14 +9,12 @@ import requests
 from multiprocessing import Pool
 import pandas as pd
 import geopandas as gpd
-from datetime import datetime, timezone
 import webbrowser
 from threading import Timer
 import subprocess
 import os
 import signal
 from flask import Flask
-from threading import Thread
 
 # Define the Overpass API endpoint
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
@@ -219,7 +217,7 @@ if __name__ == "__main__":
 
 # %%
 # build the app with pyinstaller
-# pyinstaller --onefile --name leaderboard_linux --add-data "config.yaml:." build_app_script.py
+# pyinstaller --onefile --name leaderboard_linux dash_app.py
 # cd dist
-# chmod +x leaderboard_linux
+# chmod -R +x ./leaderboard_linux
 # ./leaderboard_linux

@@ -1,0 +1,33 @@
+# Use a specific image that supports PyInstaller cross-compiling
+# FROM cdrx/pyinstaller-windows
+# Use the official Python image from the Docker Hub
+FROM python:3.7-windowsservercore
+
+# Set the working directory in the container
+WORKDIR /src
+
+# Copy the current directory contents into the container at /src
+COPY . /src
+
+# Download and install the Visual C++ Redistributable
+RUN powershell -Command \
+    $ErrorActionPreference = 'Stop'; \
+    Invoke-WebRequest -Uri "https://aka.ms/vs/16/release/vc_redist.x64.exe" -OutFile "C:\\vc_redist.x64.exe"; \
+    Start-Process -FilePath "C:\\vc_redist.x64.exe" -ArgumentList "/quiet", "/norestart" -NoNewWindow -Wait; \
+    Remove-Item -Force "C:\\vc_redist.x64.exe"
+
+# Install the required dependencies
+RUN pip install --upgrade pip
+RUN pip install pyinstaller dash pywin32 shapely
+
+# Ensure the pywin32 modules are installed correctly
+RUN python -m pip install pypiwin32
+RUN python -c "import win32com"
+
+# Add shapely DLLs to the path
+RUN setx PATH "%PATH%;C:\\Python37\\Lib\\site-packages\\shapely\\DLLs"
+
+# Build the executable using PyInstaller
+RUN pyinstaller --onefile --name leaderboard_win dash_app.py
+
+# The output executable will be in the 'dist' directory

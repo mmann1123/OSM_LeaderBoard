@@ -12,12 +12,20 @@ import geopandas as gpd
 from datetime import datetime, timezone
 import webbrowser
 from threading import Timer
+import subprocess
+import os
+import signal
+from flask import Flask
+from threading import Thread
 
 # Define the Overpass API endpoint
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
+# Create a Flask server
+server = Flask(__name__)
+
 # Initialize the Dash app
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, server=server)
 
 # Define the layout of your Dash app
 
@@ -180,12 +188,34 @@ def update_output(content, name):
     return None, dash.no_update, dash.no_update, dash.no_update
 
 
-# Run the server
+# Define a function to stop the server
+def stop_server():
+    os.kill(os.getpid(), signal.SIGINT)
+
+
 if __name__ == "__main__":
-    app.run_server(debug=False)
-    # open browser and connect to http://127.0.0.1:8050/
-    Timer(1, lambda: webbrowser.open("http://127.0.0.1:8050/")).start()
-    app.run_server(debug=False)
+    # Assign a random port between 8000 and 8999
+    port = 8050
+
+    # Try to kill any process using the port
+    try:
+        result = subprocess.check_output(f"lsof -t -i :{port}", shell=True)
+        os.kill(int(result), signal.SIGKILL)
+        # wait 3 seconds
+        subprocess.run(["sleep", "3"])
+        print(f"Killed process on port {port}")
+    except subprocess.CalledProcessError:
+        print(f"No process running on port {port}")
+
+    # Start a timer to stop the server after 10 minutes
+    Timer(10 * 60, stop_server).start()
+
+    # Start the server
+    app.run_server(debug=False, port=port)
+    import time
+
+    # Open the browser
+    webbrowser.open(f"http://127.0.0.1:{port}/")
 
 # %%
 # build the app with pyinstaller

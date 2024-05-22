@@ -59,3 +59,8 @@ python dash_app.py
 ```
 
 In the browser window select or drag your `config.yaml` file to the upload box. The leaderboard will be displayed in the browser window once the api calls are complete.
+
+
+# Demo
+
+![OSM Leaderboard](https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/osm_leaderboard3.gif?raw=true)

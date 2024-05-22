@@ -20,11 +20,12 @@ OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 app = dash.Dash(__name__)
 
 # Define the layout of your Dash app
+
 app.layout = html.Div(
     [
         dcc.Upload(
             id="upload-data",
-            children=html.Div(["Drag and Drop or ", html.A("Select a Config File")]),
+            children=html.Div(["Drag and Drop or ", html.A("Select Files")]),
             style={
                 "width": "100%",
                 "height": "60px",
@@ -35,12 +36,17 @@ app.layout = html.Div(
                 "textAlign": "center",
                 "margin": "10px",
             },
-            # Allow multiple files to be uploaded
             multiple=False,
         ),
-        html.Div(id="output-data-upload"),
-        html.Iframe(id="map", style={"width": "100%", "height": "500px"}),
-        dash_table.DataTable(id="table"),
+        dcc.Loading(
+            id="loading",
+            type="circle",
+            children=[
+                html.Div(id="output-data-upload"),
+                html.Iframe(id="map", style={"width": "100%", "height": "50vh"}),
+                dash_table.DataTable(id="table"),
+            ],
+        ),
     ]
 )
 
@@ -156,7 +162,8 @@ def update_output(content, name):
                 table_data = df.to_dict("records")
 
                 return (
-                    'File "{}" successfully uploaded.'.format(name),
+                    # 'File "{}" successfully uploaded.'.format(name),
+                    "",
                     map_src,
                     table_columns,
                     table_data,
@@ -181,3 +188,8 @@ if __name__ == "__main__":
     app.run_server(debug=False)
 
 # %%
+# build the app with pyinstaller
+# pyinstaller --onefile --name leaderboard_linux --add-data "config.yaml:." build_app_script.py
+# cd dist
+# chmod +x leaderboard_linux
+# ./leaderboard_linux

@@ -3,3 +3,8 @@ pandas
 geopandas
 requests
 pyyaml
+datetime
+dash_uploader 
+dash_table 
+plotly  
+shapely

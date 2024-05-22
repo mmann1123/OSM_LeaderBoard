@@ -1,13 +1,17 @@
 # %%
-import dash
-from dash import html, dcc
-import pandas as pd
-import geopandas as gpd
-from dash.dependencies import Input, Output
-from dash import dash_table
 import requests
-import os
 import yaml
+from datetime import datetime, timezone
+import dash
+import pandas as pd
+import requests
+import yaml
+import geopandas as gpd
+from dash import dash_table
+from dash import html
+import requests
+import yaml
+from multiprocessing import Pool
 
 # Load configuration from config.yaml
 with open("config.yaml", "r") as file:
@@ -15,22 +19,39 @@ with open("config.yaml", "r") as file:
 
 bbox = config["bbox"]
 usernames = config["usernames"]
+newer_date = config.get("newer_than_date")
+
+
+# Convert the newer_date to ISO 8601 format if provided
+def convert_to_iso8601(date_str):
+    if date_str:
+        return f"{date_str}T00:00:00Z"
+    return None
+
+
+newer_date = convert_to_iso8601(newer_date)
 
 # Define the Overpass API endpoint
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
-# Initialize a dictionary to store the count of nodes added by each user
-user_node_counts = {}
 
-for username in usernames:
-    # Define the Overpass QL query for the current username
+# Function to fetch node count for a username
+def fetch_node_count(username):
+    date_filter = ""
+    if newer_date:
+        date_filter = f'(newer:"{newer_date}")'
+
     query = f"""
-    [out:json];
+    [out:json][timeout:25];
     (
-      node(user:"{username}")({bbox});
+      node(user:"{username}"){date_filter}({bbox});
     );
     out count;
     """
+
+    # Print the query for debugging
+    print("Query for user:", username)
+    print(query)
 
     # Send the request to the Overpass API
     response = requests.post(OVERPASS_URL, data={"data": query})
@@ -41,21 +62,25 @@ for username in usernames:
         data = response.json()
         # Assuming the count is directly in the "total" field of the JSON. Adjust if necessary.
         count = data.get("elements", [{}])[0].get("tags", {}).get("nodes", "N/A")
-        user_node_counts[username] = count
+        return username, count
     else:
         print(
             f"Query for user '{username}' failed with status code {response.status_code}"
         )
+        print("Response content:", response.content.decode("utf-8"))
+        return username, "N/A"
+
+
+with Pool(processes=len(usernames)) as pool:
+    results = pool.map(fetch_node_count, usernames)
+
+# Initialize a dictionary to store the count of nodes added by each user
+user_node_counts = dict(results)
+
 
 # Print the resulting dictionary
 print("Node counts by user:", user_node_counts)
-import pandas as pd
 
-# # if results exist delete file
-# try:
-#     os.remove("./user_node_counts.csv")
-# except:
-#     pass
 
 # convert Node_count to integers using dictionary comprehension
 user_node_counts = {k: int(v) for k, v in user_node_counts.items()}
@@ -63,18 +88,13 @@ user_node_counts = {k: int(v) for k, v in user_node_counts.items()}
 out = pd.DataFrame(user_node_counts.items(), columns=["Username", "Node_Count"])
 # sort in descending order
 df = out.sort_values(by="Node_Count", ascending=False)
-# out.to_csv("./user_node_counts.csv", index=False)
+
 
 ########################################################################################
 #  create python dashboard
 
 # Initialize the Dash app
 app = dash.Dash(__name__)
-
-# Load your CSV data into DataFrame
-# df = pd.read_csv(
-#     "user_node_counts.csv"
-# )  # Replace 'path_to_your_file.csv' with the actual path to your CSV file
 
 # Create a simple GeoDataFrame with a bounding box
 min_lat, min_lon, max_lat, max_lon = map(float, bbox.split(","))

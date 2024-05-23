@@ -10,7 +10,7 @@ from multiprocessing import Pool
 import pandas as pd
 import geopandas as gpd
 import webbrowser
-from threading import Timer
+from threading import Timer, Thread
 import subprocess
 import os
 import signal
@@ -26,12 +26,13 @@ server = Flask(__name__)
 app = dash.Dash(__name__, server=server)
 
 # Define the layout of your Dash app
-
 app.layout = html.Div(
     [
         dcc.Upload(
             id="upload-data",
-            children=html.Div(["Drag and Drop or ", html.A("Select Files")]),
+            children=html.Div(
+                ["Drag and Drop or ", html.A("Select \n config.yaml file")]
+            ),
             style={
                 "width": "100%",
                 "height": "60px",
@@ -158,12 +159,12 @@ def update_output(content, name):
                     ],
                     crs="EPSG:4326",
                 )
-                bbox_gpd.explore(
-                    style_kwds={"fillColor": "blue", "color": "black"}
-                ).save("inlaymap.html")
 
-                # Update the layout of your Dash app
-                map_src = open("inlaymap.html", "r").read()
+                map_obj = bbox_gpd.explore(
+                    style_kwds={"fillColor": "blue", "color": "black"}
+                )
+
+                map_src = map_obj.get_root().render()
                 table_columns = [{"name": i, "id": i} for i in df.columns]
                 table_data = df.to_dict("records")
 
@@ -191,6 +192,10 @@ def stop_server():
     os.kill(os.getpid(), signal.SIGINT)
 
 
+def open_browser():
+    webbrowser.open_new(f"http://127.0.0.1:{port}/")
+
+
 if __name__ == "__main__":
     # Assign a random port between 8000 and 8999
     port = 8050
@@ -209,11 +214,9 @@ if __name__ == "__main__":
     Timer(10 * 60, stop_server).start()
 
     # Start the server
+    Thread(target=open_browser).start()
     app.run_server(debug=False, port=port)
-    import time
 
-    # Open the browser
-    webbrowser.open(f"http://127.0.0.1:{port}/")
 
 # %%
 # build the app with pyinstaller

@@ -220,7 +220,6 @@ if __name__ == "__main__":
         elif platform.system() == "Windows":
             pid = result.decode().split(" ")[-1]
             subprocess.run(["taskkill", "/F", "/PID", pid])
-            subprocess.run(["sleep", "3"])
             print(f"Killed process on port {port}")
     except subprocess.CalledProcessError:
         print(f"No process running on port {port}")

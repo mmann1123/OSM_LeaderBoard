@@ -230,16 +230,14 @@ if __name__ == "__main__":
         print(f"No process running on port {port}")
 
     # Start a timer to stop the server after 10 minutes
-    Timer(10 * 60, stop_server).start()
-
-    # Start the server
-    Thread(target=open_browser).start()
+    # Timer(10 * 60, stop_server).start()
 
        # Check if port is in use
     if not is_port_in_use(port) and platform.system()== "Windows":
         Timer(1, open_browser).start()  # Start the browser with a slight delay
         app.run_server(debug=False, port=port)
     else:
+        Timer(1, open_browser).start()  # Start the browser with a slight delay
         app.run_server(debug=False, port=port)
 
 

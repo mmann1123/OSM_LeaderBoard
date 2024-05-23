@@ -216,7 +216,12 @@ if __name__ == "__main__":
             os.kill(int(result), signal.SIGKILL)
             # wait 3 seconds
             subprocess.run(["sleep", "3"])
-        print(f"Killed process on port {port}")
+            print(f"Killed process on port {port}")
+        elif platform.system() == "Windows":
+            pid = result.decode().split(" ")[-1]
+            subprocess.run(["taskkill", "/F", "/PID", pid])
+            subprocess.run(["sleep", "3"])
+            print(f"Killed process on port {port}")
     except subprocess.CalledProcessError:
         print(f"No process running on port {port}")
 

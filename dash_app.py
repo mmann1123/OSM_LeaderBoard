@@ -15,6 +15,7 @@ import subprocess
 import os
 import signal
 from flask import Flask
+import platform
 
 # Define the Overpass API endpoint
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
@@ -189,7 +190,10 @@ def update_output(content, name):
 
 # Define a function to stop the server
 def stop_server():
-    os.kill(os.getpid(), signal.SIGINT)
+    if platform.system() == "Windows":
+        os.kill(os.getpid(), signal.SIGTERM)
+    else:
+        os.kill(os.getpid(), signal.SIGINT)
 
 
 def open_browser():
@@ -202,10 +206,16 @@ if __name__ == "__main__":
 
     # Try to kill any process using the port
     try:
-        result = subprocess.check_output(f"lsof -t -i :{port}", shell=True)
-        os.kill(int(result), signal.SIGKILL)
-        # wait 3 seconds
-        subprocess.run(["sleep", "3"])
+        if platform.system() == "Windows":
+            command = f"netstat -ano | findstr :{port}"
+        else:
+            command = f"lsof -t -i :{port}"
+
+        result = subprocess.check_output(command, shell=True)
+        if platform.system() != "Windows":
+            os.kill(int(result), signal.SIGKILL)
+            # wait 3 seconds
+            subprocess.run(["sleep", "3"])
         print(f"Killed process on port {port}")
     except subprocess.CalledProcessError:
         print(f"No process running on port {port}")

@@ -6,6 +6,8 @@ pyyaml
 datetime
 dash_uploader 
 dash_table 
-plotly  
 shapely
+folium 
+matplotlib 
+mapclassify
  

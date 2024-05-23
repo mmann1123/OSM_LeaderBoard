@@ -224,3 +224,6 @@ if __name__ == "__main__":
 # cd dist
 # chmod -R +x ./leaderboard_linux
 # ./leaderboard_linux
+
+# build windows app
+# pyinstaller --onefile --name leaderboard_win dash_app.py

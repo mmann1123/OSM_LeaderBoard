@@ -199,12 +199,15 @@ def stop_server():
 def open_browser():
     webbrowser.open_new(f"http://127.0.0.1:{port}/")
 
+
 import socket
+
 
 def is_port_in_use(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex(('localhost', port)) == 0
-    
+        return s.connect_ex(("localhost", port)) == 0
+
+
 if __name__ == "__main__":
     # Assign a random port between 8000 and 8999
     port = 8050
@@ -229,16 +232,12 @@ if __name__ == "__main__":
     except subprocess.CalledProcessError:
         print(f"No process running on port {port}")
 
-    # Start a timer to stop the server after 10 minutes
-    # Timer(10 * 60, stop_server).start()
+        # Start a timer to stop the server after 10 minutes
+        # Timer(10 * 60, stop_server).start()
 
-       # Check if port is in use
-    if not is_port_in_use(port) and platform.system()== "Windows":
-        Timer(1, open_browser).start()  # Start the browser with a slight delay
-        app.run_server(debug=False, port=port)
-    else:
-        Timer(1, open_browser).start()  # Start the browser with a slight delay
-        app.run_server(debug=False, port=port)
+    # Check if port is in use
+    Timer(1, open_browser).start()  # Start the browser with a slight delay
+    app.run_server(debug=False, port=port)
 
 
 # %%

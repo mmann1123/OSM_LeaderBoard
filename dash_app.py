@@ -248,4 +248,7 @@ if __name__ == "__main__":
 # ./dist/leaderboard_linux
 
 # build windows app
+# pyinstaller leaderboard_win.spec
 # pyinstaller --onefile --name leaderboard_win dash_app.py
+
+# cxfreeze --script dash_app.py  

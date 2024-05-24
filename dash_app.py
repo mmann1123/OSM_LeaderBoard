@@ -11,7 +11,6 @@ import pandas as pd
 import geopandas as gpd
 import webbrowser
 from threading import Timer
-import subprocess
 import os
 import signal
 from flask import Flask
@@ -195,50 +194,12 @@ def stop_server():
         os.kill(os.getpid(), signal.SIGTERM)
     else:
         os.kill(os.getpid(), signal.SIGINT)
-
-
-# def open_browser_once():
-#     if not getattr(open_browser_once, "called", False):
-#         webbrowser.open_new(f"http://127.0.0.1:{port}/")
-#         open_browser_once.called = True
-
-
-
-
-# def is_port_in_use(port):
-#     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-#         return s.connect_ex(("localhost", port)) == 0
-
+ 
 def open_browser(port):
     webbrowser.open_new(f"http://127.0.0.1:{port}/")
 
 
-if __name__ == "__main__":
-    # Assign a random port between 8000 and 8999
-    # port = 8050
-
-    # # Try to kill any process using the port
-    # try:
-    #     if platform.system() == "Windows":
-    #         command = f"netstat -ano | findstr :{port}"
-    #     else:
-    #         command = f"lsof -t -i :{port}"
-
-    #     result = subprocess.check_output(command, shell=True)
-    #     if platform.system() != "Windows":
-    #         os.kill(int(result), signal.SIGKILL)
-    #         # wait 3 seconds
-    #         subprocess.run(["sleep", "3"])
-    #         print(f"Killed process on port {port}")
-    #     elif platform.system() == "Windows":
-    #         pid = result.decode().split(" ")[-1]
-    #         subprocess.run(["taskkill", "/F", "/PID", pid])
-    #         print(f"Killed process on port {port}")
-    # except subprocess.CalledProcessError:
-    #     print(f"No process running on port {port}")
-
-    # Start a timer to stop the server after 10 minutes
-    # Timer(10 * 60, stop_server).start()
+if __name__ == "__main__": 
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind(('', 0))

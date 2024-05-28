@@ -1,12 +1,23 @@
 # OSM_LeaderBoard
 This is a Dash application that creates a leaderboard of OpenStreetMap contributors based on the number of nodes they have contributed for a given bounding box and time period.
 
-## Installation
+## Executables
 
-Install directly from GitHub:
+Executable files for windows and linux are currently available for download:
+
+[Download Executables](https://www.dropbox.com/scl/fo/07gchwqkr5kl2c4julr52/AGoB9nqB9aCRBVJnMg5V4CA?rlkey=x23yu6k6utvb98izvjjyexcub&st=mdh91bij&dl=0)
+
+## Python Installation & Execution
+
+Install directly from GitHub using a terminal window:
 
 ```bash
 pip install git+https://github.com/mmann1123/OSM_LeaderBoard.git
+```
+
+Once installed simply type:
+```bash
+osm-leaderboard
 ```
 
 ## Configuration

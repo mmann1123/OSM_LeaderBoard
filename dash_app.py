@@ -225,26 +225,32 @@ def open_browser(port):
     webbrowser.open_new(f"http://127.0.0.1:{port}/")
 
 
-if __name__ == "__main__":
+def main():
     logging.info("Executing main block.")
-    first_flag = True
-
-    # avoid threading with windows exe
+    # Ensure compatibility with Windows exe for threading
     if platform.system() == "Windows":
         freeze_support()
 
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("", 0))
-        port = s.getsockname()[1]
-        logging.info(f"Assigned port {port} for the app.")
+    try:
+        # Setup a socket to dynamically find a free port
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("", 0))  # Bind to a free port provided by the host.
+            port = s.getsockname()[1]
+            logging.info(f"Assigned port {port} for the app.")
 
-    Timer(1, open_browser, args=[port]).start()
-    logging.info(f"Browser will open at http://127.0.0.1:{port}/")
+        # Open a web browser pointed at the URL
+        Timer(1, open_browser, args=[port]).start()
+        logging.info(f"Browser will open at http://127.0.0.1:{port}/")
 
-    if first_flag:
-        app.run(port=port)
+        # Run the Dash app on the dynamically assigned port
+        app.run_server(port=port, debug=True)
         logging.info("Application has started.")
-        first_flag = False
+    except Exception as e:
+        logging.error("Failed to start the application:", exc_info=True)
+
+
+if __name__ == "__main__":
+    main()
 
 # %%
 # build the app with pyinstaller

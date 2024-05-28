@@ -10,3 +10,4 @@ shapely
 folium 
 matplotlib 
 mapclassify
+tendo

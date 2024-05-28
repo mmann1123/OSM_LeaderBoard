@@ -16,6 +16,7 @@ import signal
 from flask import Flask
 import platform
 import socket
+from tendo import singleton
 
 # Define the Overpass API endpoint
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
@@ -194,21 +195,23 @@ def stop_server():
         os.kill(os.getpid(), signal.SIGTERM)
     else:
         os.kill(os.getpid(), signal.SIGINT)
- 
+
+
 def open_browser(port):
     webbrowser.open_new(f"http://127.0.0.1:{port}/")
 
 
-if __name__ == "__main__": 
+# create file lock ensuring only one instance of the app is running
+me = singleton.SingleInstance()
 
+if __name__ == "__main__":
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(('', 0))
-            port = s.getsockname()[1]
+        s.bind(("", 0))
+        port = s.getsockname()[1]
 
     Timer(1, open_browser, args=[port]).start()
     app.run(port=port)
- 
- 
+
 
 # %%
 # build the app with pyinstaller
@@ -220,4 +223,4 @@ if __name__ == "__main__":
 # pyinstaller leaderboard_win.spec
 # pyinstaller --onefile --name leaderboard_win dash_app.py
 
-# cxfreeze --script dash_app.py  
+# cxfreeze --script dash_app.py

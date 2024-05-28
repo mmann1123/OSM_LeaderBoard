@@ -1,6 +1,6 @@
 requests_mock
-
-
-
-
+psutil
+multiprocess
+selenium
+bs4
 

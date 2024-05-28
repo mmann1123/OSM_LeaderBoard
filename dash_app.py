@@ -243,7 +243,7 @@ def main():
         logging.info(f"Browser will open at http://127.0.0.1:{port}/")
 
         # Run the Dash app on the dynamically assigned port
-        app.run_server(port=port, debug=True)
+        app.run_server(port=port, debug=False)
         logging.info("Application has started.")
     except Exception as e:
         logging.error("Failed to start the application:", exc_info=True)

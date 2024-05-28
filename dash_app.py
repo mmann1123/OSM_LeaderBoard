@@ -19,7 +19,12 @@ import socket
 import logging
 
 # Setup logging
-logging.basicConfig(filename='app.log', filemode='w', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
+logging.basicConfig(
+    filename="app.log",
+    filemode="w",
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.DEBUG,
+)
 
 # Define the Overpass API endpoint
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
@@ -76,7 +81,9 @@ logging.info("Starting application setup.")
 
 # Function to fetch node count for a username
 def fetch_node_count(username, newer_date, bbox):
-    logging.debug(f"Fetching node count for {username} with filter date {newer_date} and bbox {bbox}")
+    logging.debug(
+        f"Fetching node count for {username} with filter date {newer_date} and bbox {bbox}"
+    )
     date_filter = ""
     if newer_date:
         date_filter = f'(newer:"{newer_date}")'
@@ -102,7 +109,9 @@ def fetch_node_count(username, newer_date, bbox):
 
         return username, count
     else:
-        logging.error(f"Failed to fetch node count for {username}: HTTP {response.status_code}")
+        logging.error(
+            f"Failed to fetch node count for {username}: HTTP {response.status_code}"
+        )
         return username, "N/A"
 
 
@@ -219,7 +228,7 @@ def open_browser(port):
 if __name__ == "__main__":
     logging.info("Executing main block.")
     first_flag = True
-   
+
     # avoid threading with windows exe
     if platform.system() == "Windows":
         freeze_support()

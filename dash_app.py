@@ -6,16 +6,20 @@ from dash import dcc, html, dash_table
 from dash.dependencies import Input, Output, State
 import yaml
 import requests
-from multiprocessing import Pool
+from multiprocessing import Pool, freeze_support
 import pandas as pd
 import geopandas as gpd
 import webbrowser
 from threading import Timer
-import subprocess
 import os
 import signal
 from flask import Flask
 import platform
+import socket
+import logging
+
+# Setup logging
+logging.basicConfig(filename='app.log', filemode='w', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 
 # Define the Overpass API endpoint
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
@@ -66,8 +70,13 @@ def convert_to_iso8601(date_str):
     return None
 
 
+# Logging application start
+logging.info("Starting application setup.")
+
+
 # Function to fetch node count for a username
 def fetch_node_count(username, newer_date, bbox):
+    logging.debug(f"Fetching node count for {username} with filter date {newer_date} and bbox {bbox}")
     date_filter = ""
     if newer_date:
         date_filter = f'(newer:"{newer_date}")'
@@ -89,8 +98,11 @@ def fetch_node_count(username, newer_date, bbox):
         data = response.json()
         # Assuming the count is directly in the "total" field of the JSON. Adjust if necessary.
         count = data.get("elements", [{}])[0].get("tags", {}).get("nodes", "N/A")
+        logging.info(f"Node count for {username}: {count}")
+
         return username, count
     else:
+        logging.error(f"Failed to fetch node count for {username}: HTTP {response.status_code}")
         return username, "N/A"
 
 
@@ -106,7 +118,10 @@ def fetch_node_count(username, newer_date, bbox):
     State("upload-data", "filename"),
 )
 def update_output(content, name):
+    logging.info("Received file upload.")
+
     if content is not None:
+        logging.info(f"File name: {name}")
         content_type, content_string = content.split(",")
         decoded = base64.b64decode(content_string)
         try:
@@ -184,7 +199,8 @@ def update_output(content, name):
                 dash.no_update,
                 dash.no_update,
             )
-
+    else:
+        logging.error("No content uploaded.")
     return None, dash.no_update, dash.no_update, dash.no_update
 
 
@@ -196,50 +212,30 @@ def stop_server():
         os.kill(os.getpid(), signal.SIGINT)
 
 
-def open_browser_once():
-    if not getattr(open_browser_once, "called", False):
-        webbrowser.open_new(f"http://127.0.0.1:{port}/")
-        open_browser_once.called = True
-
-
-import socket
-
-
-def is_port_in_use(port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex(("localhost", port)) == 0
+def open_browser(port):
+    webbrowser.open_new(f"http://127.0.0.1:{port}/")
 
 
 if __name__ == "__main__":
-    # Assign a random port between 8000 and 8999
-    port = 8050
+    logging.info("Executing main block.")
+    first_flag = True
+   
+    # avoid threading with windows exe
+    if platform.system() == "Windows":
+        freeze_support()
 
-    # Try to kill any process using the port
-    try:
-        if platform.system() == "Windows":
-            command = f"netstat -ano | findstr :{port}"
-        else:
-            command = f"lsof -t -i :{port}"
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("", 0))
+        port = s.getsockname()[1]
+        logging.info(f"Assigned port {port} for the app.")
 
-        result = subprocess.check_output(command, shell=True)
-        if platform.system() != "Windows":
-            os.kill(int(result), signal.SIGKILL)
-            # wait 3 seconds
-            subprocess.run(["sleep", "3"])
-            print(f"Killed process on port {port}")
-        elif platform.system() == "Windows":
-            pid = result.decode().split(" ")[-1]
-            subprocess.run(["taskkill", "/F", "/PID", pid])
-            print(f"Killed process on port {port}")
-    except subprocess.CalledProcessError:
-        print(f"No process running on port {port}")
+    Timer(1, open_browser, args=[port]).start()
+    logging.info(f"Browser will open at http://127.0.0.1:{port}/")
 
-    # Start a timer to stop the server after 10 minutes
-    # Timer(10 * 60, stop_server).start()
-
-    # Check if port is in use
-    Timer(1, open_browser_once).start()  # Start the browser with a slight delay
-    app.run_server(debug=False, port=port)
+    if first_flag:
+        app.run(port=port)
+        logging.info("Application has started.")
+        first_flag = False
 
 # %%
 # build the app with pyinstaller
@@ -251,4 +247,4 @@ if __name__ == "__main__":
 # pyinstaller leaderboard_win.spec
 # pyinstaller --onefile --name leaderboard_win dash_app.py
 
-# cxfreeze --script dash_app.py  
+# cxfreeze --script dash_app.py

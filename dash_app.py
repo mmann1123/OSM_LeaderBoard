@@ -226,6 +226,7 @@ def open_browser(port):
 
 
 def main():
+    print('This app brought to you by https://pygis.io')
     logging.info("Executing main block.")
     # Ensure compatibility with Windows exe for threading
     if platform.system() == "Windows":

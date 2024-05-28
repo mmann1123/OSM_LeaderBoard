@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="OSM_LeaderBoard",
-    version="1.1.0",
+    version="1.1.1",
     packages=find_packages(),
     install_requires=[
         "dash",
@@ -19,7 +19,11 @@ setup(
         "mapclassify",
         "flask",
     ],
-    entry_points={"console_scripts": ["osm-leaderboard=OSM_LeaderBoard.app:main"]},
+    entry_points={
+        "console_scripts": [
+            "leaderboard=osm_leaderboard.dash_app:main",
+        ],
+    },
     author="Michael Mann",
     author_email="mmann1123@gmail.com",
     description="An application to analyze and display OSM leaderboards.",

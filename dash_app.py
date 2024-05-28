@@ -6,7 +6,7 @@ from dash import dcc, html, dash_table
 from dash.dependencies import Input, Output, State
 import yaml
 import requests
-from multiprocessing import Pool
+from multiprocessing import Pool, freeze_support
 import pandas as pd
 import geopandas as gpd
 import webbrowser
@@ -16,7 +16,10 @@ import signal
 from flask import Flask
 import platform
 import socket
-from tendo import singleton
+import logging
+
+# Setup logging
+logging.basicConfig(filename='app.log', filemode='w', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 
 # Define the Overpass API endpoint
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
@@ -67,8 +70,13 @@ def convert_to_iso8601(date_str):
     return None
 
 
+# Logging application start
+logging.info("Starting application setup.")
+
+
 # Function to fetch node count for a username
 def fetch_node_count(username, newer_date, bbox):
+    logging.debug(f"Fetching node count for {username} with filter date {newer_date} and bbox {bbox}")
     date_filter = ""
     if newer_date:
         date_filter = f'(newer:"{newer_date}")'
@@ -90,8 +98,11 @@ def fetch_node_count(username, newer_date, bbox):
         data = response.json()
         # Assuming the count is directly in the "total" field of the JSON. Adjust if necessary.
         count = data.get("elements", [{}])[0].get("tags", {}).get("nodes", "N/A")
+        logging.info(f"Node count for {username}: {count}")
+
         return username, count
     else:
+        logging.error(f"Failed to fetch node count for {username}: HTTP {response.status_code}")
         return username, "N/A"
 
 
@@ -107,7 +118,10 @@ def fetch_node_count(username, newer_date, bbox):
     State("upload-data", "filename"),
 )
 def update_output(content, name):
+    logging.info("Received file upload.")
+
     if content is not None:
+        logging.info(f"File name: {name}")
         content_type, content_string = content.split(",")
         decoded = base64.b64decode(content_string)
         try:
@@ -185,7 +199,8 @@ def update_output(content, name):
                 dash.no_update,
                 dash.no_update,
             )
-
+    else:
+        logging.error("No content uploaded.")
     return None, dash.no_update, dash.no_update, dash.no_update
 
 
@@ -201,17 +216,26 @@ def open_browser(port):
     webbrowser.open_new(f"http://127.0.0.1:{port}/")
 
 
-# create file lock ensuring only one instance of the app is running
-me = singleton.SingleInstance()
-
 if __name__ == "__main__":
+    logging.info("Executing main block.")
+    first_flag = True
+   
+    # avoid threading with windows exe
+    if platform.system() == "Windows":
+        freeze_support()
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("", 0))
         port = s.getsockname()[1]
+        logging.info(f"Assigned port {port} for the app.")
 
     Timer(1, open_browser, args=[port]).start()
-    app.run(port=port)
+    logging.info(f"Browser will open at http://127.0.0.1:{port}/")
 
+    if first_flag:
+        app.run(port=port)
+        logging.info("Application has started.")
+        first_flag = False
 
 # %%
 # build the app with pyinstaller

@@ -3,18 +3,11 @@ This is a Dash application that creates a leaderboard of OpenStreetMap contribut
 
 ## Installation
 
-1. Clone this repository:
-    ```bash
-    git clone https://github.com/mmann1123/OSM_LeaderBoard.git
-    ```
-2. Navigate to the project directory:
-    ```bash
-    cd yourrepository
-    ```
-3. Install the required packages:
-    ```bash
-    pip install -r requirements.txt
-    ```
+Install directly from GitHub:
+
+```bash
+pip install git+https://github.com/mmann1123/OSM_LeaderBoard.git
+```
 
 ## Configuration
 

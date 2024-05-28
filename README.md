@@ -70,4 +70,4 @@ In the browser window select or drag your `config.yaml` file to the upload box. 
 
 # Demo
 
-![OSM Leaderboard](https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/leaderboard2.gif?raw=true)
+![OSM Leaderboard](https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/leaderboard3.gif?raw=true)

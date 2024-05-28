@@ -7,6 +7,8 @@ Executable files for windows and linux are currently available for download:
 
 [Download Executables](https://www.dropbox.com/scl/fo/07gchwqkr5kl2c4julr52/AGoB9nqB9aCRBVJnMg5V4CA?rlkey=x23yu6k6utvb98izvjjyexcub&st=mdh91bij&dl=0)
 
+Double-click to execute the leaderboard. 
+
 ## Python Installation & Execution
 
 Install directly from GitHub using a terminal window:
@@ -16,13 +18,14 @@ pip install git+https://github.com/mmann1123/OSM_LeaderBoard.git
 ```
 
 Once installed simply type:
+
 ```bash
-osm-leaderboard
+leaderboard
 ```
 
 ## Configuration
 
-The application is configured through a `config.yaml` file. Here's what each configuration option does:
+The application is configured through a file `config.yaml` file. Here's what each configuration option does:
 
 - `bbox`: This is the bounding box for the area you're interested in. It should be a string with four comma-separated numbers representing the latitude and longitude of the southwest and northeast corners of the bounding box, respectively. For example: `"40.551042, -74.05663, 40.739446, -73.833365"`.
 

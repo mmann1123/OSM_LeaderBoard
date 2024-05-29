@@ -6,9 +6,9 @@ from dash import dcc, html, dash_table
 from dash.dependencies import Input, Output, State
 import yaml
 import requests
-from multiprocessing import Pool, freeze_support
 import pandas as pd
 import geopandas as gpd
+from multiprocessing import Pool, freeze_support
 import webbrowser
 from threading import Timer
 import os
@@ -41,7 +41,7 @@ app.layout = html.Div(
         dcc.Upload(
             id="upload-data",
             children=html.Div(
-                ["Drag and Drop or ", html.A("Select \n config.yaml file")]
+                ["Drag and Drop or ", html.A("Select a config.yaml file")]
             ),
             style={
                 "width": "100%",
@@ -64,6 +64,15 @@ app.layout = html.Div(
                 dash_table.DataTable(id="table"),
             ],
         ),
+        dcc.Interval(
+            id="interval-component",
+            interval=0.1 * 60 * 1000,  # in milliseconds
+            n_intervals=0,
+            max_intervals=12,  # Since 5min * 12 = 60min
+        ),
+        dcc.Store(
+            id="stored-data"
+        ),  # Hidden storage for persisting data across callbacks
     ]
 )
 
@@ -73,10 +82,6 @@ def convert_to_iso8601(date_str):
     if date_str:
         return f"{date_str}T00:00:00Z"
     return None
-
-
-# Logging application start
-logging.info("Starting application setup.")
 
 
 # Function to fetch node count for a username
@@ -115,7 +120,27 @@ def fetch_node_count(username, newer_date, bbox):
         return username, "N/A"
 
 
-# Define a callback to handle the uploaded file
+# Callback to handle the file upload and initialize data
+@app.callback(
+    Output("stored-data", "data"),
+    Input("upload-data", "contents"),
+    State("upload-data", "filename"),
+)
+def handle_upload(contents, filename):
+    if contents:
+        content_type, content_string = contents.split(",")
+        decoded = base64.b64decode(content_string)
+        try:
+            if "yaml" in filename:
+                config = yaml.safe_load(io.StringIO(decoded.decode("utf-8")))
+                return config  # Store the entire configuration
+        except Exception as e:
+            logging.error("Failed to process uploaded file:", exc_info=True)
+            return None
+    return None
+
+
+# Callback to update data based on the interval
 @app.callback(
     [
         Output("output-data-upload", "children"),
@@ -123,102 +148,59 @@ def fetch_node_count(username, newer_date, bbox):
         Output("table", "columns"),
         Output("table", "data"),
     ],
-    Input("upload-data", "contents"),
-    State("upload-data", "filename"),
+    Input("interval-component", "n_intervals"),
+    State("stored-data", "data"),
 )
-def update_output(content, name):
-    logging.info("Received file upload.")
+def update_data(n_intervals, stored_data):
+    if stored_data:
+        bbox = stored_data["bbox"]
+        usernames = stored_data["usernames"]
+        newer_date = convert_to_iso8601(stored_data.get("newer_than_date"))
 
-    if content is not None:
-        logging.info(f"File name: {name}")
-        content_type, content_string = content.split(",")
-        decoded = base64.b64decode(content_string)
-        try:
-            if "yaml" in name:
-                # Assume that the user uploaded a yaml file
-                config = yaml.safe_load(io.StringIO(decoded.decode("utf-8")))
-                # Use the config data to update your app
-                bbox = config["bbox"]
-                usernames = config["usernames"]
-                newer_date = config.get("newer_than_date")
-                newer_date = convert_to_iso8601(newer_date)
-
-                with Pool(processes=len(usernames)) as pool:
-                    results = pool.starmap(
-                        fetch_node_count,
-                        [(username, newer_date, bbox) for username in usernames],
-                    )
-
-                # Initialize a dictionary to store the count of nodes added by each user
-                user_node_counts = dict(results)
-
-                # convert Node_count to integers using dictionary comprehension
-                user_node_counts = {k: int(v) for k, v in user_node_counts.items()}
-
-                out = pd.DataFrame(
-                    user_node_counts.items(), columns=["Username", "Node_Count"]
-                )
-                # sort in descending order
-                df = out.sort_values(by="Node_Count", ascending=False)
-
-                # Create a simple GeoDataFrame with a bounding box
-                min_lat, min_lon, max_lat, max_lon = map(float, bbox.split(","))
-                bbox_gpd = gpd.GeoDataFrame.from_features(
-                    [
-                        {
-                            "type": "Feature",
-                            "properties": {},
-                            "geometry": {
-                                "type": "Polygon",
-                                "coordinates": [
-                                    [
-                                        [min_lon, min_lat],
-                                        [min_lon, max_lat],
-                                        [max_lon, max_lat],
-                                        [max_lon, min_lat],
-                                        [min_lon, min_lat],
-                                    ]
-                                ],
-                            },
-                        }
-                    ],
-                    crs="EPSG:4326",
-                )
-
-                map_obj = bbox_gpd.explore(
-                    style_kwds={"fillColor": "blue", "color": "black"}
-                )
-
-                map_src = map_obj.get_root().render()
-                table_columns = [{"name": i, "id": i} for i in df.columns]
-                table_data = df.to_dict("records")
-
-                return (
-                    # 'File "{}" successfully uploaded.'.format(name),
-                    "",
-                    map_src,
-                    table_columns,
-                    table_data,
-                )
-        except Exception as e:
-            print(e)
-            return (
-                "There was an error processing this file.",
-                dash.no_update,
-                dash.no_update,
-                dash.no_update,
+        with Pool(processes=len(usernames)) as pool:
+            results = pool.starmap(
+                fetch_node_count,
+                [(username, newer_date, bbox) for username in usernames],
             )
-    else:
-        logging.error("No content uploaded.")
-    return None, dash.no_update, dash.no_update, dash.no_update
 
+        user_node_counts = {username: count for username, count in results}
+        df = pd.DataFrame(user_node_counts.items(), columns=["Username", "Node_Count"])
+        df.sort_values(by="Node_Count", ascending=False, inplace=True)
 
-# Define a function to stop the server
-def stop_server():
-    if platform.system() == "Windows":
-        os.kill(os.getpid(), signal.SIGTERM)
-    else:
-        os.kill(os.getpid(), signal.SIGINT)
+        # Generate a simple GeoDataFrame with a bounding box
+        min_lat, min_lon, max_lat, max_lon = map(float, bbox.split(","))
+        bbox_gpd = gpd.GeoDataFrame.from_features(
+            [
+                {
+                    "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [min_lon, min_lat],
+                                [min_lon, max_lat],
+                                [max_lon, max_lat],
+                                [max_lon, min_lat],
+                                [min_lon, min_lat],
+                            ]
+                        ],
+                    },
+                }
+            ],
+            crs="EPSG:4326",
+        )
+
+        map_obj = bbox_gpd.explore(style_kwds={"fillColor": "blue", "color": "black"})
+        map_src = map_obj.get_root().render()
+
+        return (
+            f"Data updated at interval {n_intervals}",
+            map_src,
+            [{"name": i, "id": i} for i in df.columns],
+            df.to_dict("records"),
+        )
+    return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
 
 def open_browser(port):
@@ -226,7 +208,7 @@ def open_browser(port):
 
 
 def main():
-    print('This app brought to you by https://pygis.io')
+    print("This app brought to you by https://pygis.io")
     logging.info("Executing main block.")
     # Ensure compatibility with Windows exe for threading
     if platform.system() == "Windows":
@@ -252,6 +234,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 # %%
 # build the app with pyinstaller

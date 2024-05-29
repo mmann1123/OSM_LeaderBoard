@@ -73,5 +73,6 @@ In the browser window select or drag your `config.yaml` file to the upload box. 
 ![OSM Leaderboard](https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/leaderboard3.gif?raw=true)
 
 # Credits
-This app brought to you by ![GWU Geography](https://github.com/mmann1123/OSM_LeaderBoard/blob/mmann1123-credits/video/gw.png?raw=true)  and   <img src="https://github.com/mmann1123/OSM_LeaderBoard/blob/mmann1123-credits/video/pygis.png?raw=true" alt="pygis.io" height="70">
+This app brought to you by [![GWU Geography](https://github.com/mmann1123/OSM_LeaderBoard/blob/mmann1123-credits/video/gw.png?raw=true)](https://geography.columbian.gwu.edu/)  and  <a href="https://pygis.io"> <img src="https://github.com/mmann1123/OSM_LeaderBoard/blob/mmann1123-credits/video/pygis.png?raw=true" alt="pygis.io" height="70"></a>
+
 

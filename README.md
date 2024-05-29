@@ -75,4 +75,6 @@ In the browser window select or drag your `config.yaml` file to the upload box. 
 # Credits
 This app brought to you by [![GWU Geography](https://github.com/mmann1123/OSM_LeaderBoard/blob/mmann1123-credits/video/gw.png?raw=true)](https://geography.columbian.gwu.edu/)  and  <a href="https://pygis.io"> <img src="https://github.com/mmann1123/OSM_LeaderBoard/blob/mmann1123-credits/video/pygis.png?raw=true" alt="pygis.io" height="70"></a>
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.11387666.svg)](https://doi.org/10.5281/zenodo.11387666)
+
 

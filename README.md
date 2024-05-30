@@ -5,9 +5,9 @@ This is a Dash application that creates a leaderboard of OpenStreetMap contribut
 
 Executable files for windows and linux are currently available for download:
 
-[Download Executables](https://www.dropbox.com/scl/fo/07gchwqkr5kl2c4julr52/AGoB9nqB9aCRBVJnMg5V4CA?rlkey=x23yu6k6utvb98izvjjyexcub&st=mdh91bij&dl=0)
+[![Download Executables](https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/download.png?raw=true)](https://www.dropbox.com/scl/fo/07gchwqkr5kl2c4julr52/AGoB9nqB9aCRBVJnMg5V4CA?rlkey=x23yu6k6utvb98izvjjyexcub&st=mdh91bij&dl=0)
 
-Double-click to execute the leaderboard. 
+
 
 ## Python Installation & Execution
 

@@ -65,8 +65,9 @@ app.layout = html.Div(
         ),
         dcc.Interval(
             id="interval-component",
-            interval=30 * 1000,  # 30 seconds
+            interval=60 * 1000,  # 30 seconds
             n_intervals=0,
+            max_intervals=60,
         ),
         dcc.Store(
             id="stored-data"
@@ -192,7 +193,7 @@ def update_data(n_intervals, stored_data):
         map_src = map_obj.get_root().render()
 
         return (
-            f"Data updated at interval {n_intervals}",
+            f"Remaining updates: {60-n_intervals}",
             map_src,
             [{"name": i, "id": i} for i in df.columns],
             df.to_dict("records"),
@@ -205,7 +206,6 @@ def open_browser(port):
 
 
 def main():
-    print("This app brought to you by https://pygis.io")
     logging.info("Executing main block.")
     # Ensure compatibility with Windows exe for threading
     if platform.system() == "Windows":

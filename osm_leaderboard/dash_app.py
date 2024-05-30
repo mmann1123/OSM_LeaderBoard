@@ -72,6 +72,41 @@ app.layout = html.Div(
         dcc.Store(
             id="stored-data"
         ),  # Hidden storage for persisting data across callbacks
+        html.Div(
+            [
+                html.A(
+                    html.Img(
+                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/gw.png?raw=true",
+                        style={"height": "70px", "margin-right": "10px"},
+                    ),
+                    href="https://geography.columbian.gwu.edu/",
+                ),
+                html.A(
+                    html.Img(
+                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/pygis.png?raw=true",
+                        style={"height": "70px", "margin-right": "10px"},
+                    ),
+                    href="https://pygis.io",
+                ),
+                html.A(
+                    html.Img(
+                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/youthmappers.webp?raw=true",
+                        style={"height": "70px"},
+                    ),
+                    href="https://www.youthmappers.org/",
+                ),
+                html.Br(),
+                html.Br(),
+                html.Br(),
+                html.A(
+                    html.Img(
+                        src="https://zenodo.org/badge/DOI/10.5281/zenodo.11387666.svg"
+                    ),
+                    href="https://doi.org/10.5281/zenodo.11387666",
+                ),
+            ],
+            style={"textAlign": "center", "padding": "20px"},
+        ),
     ]
 )
 

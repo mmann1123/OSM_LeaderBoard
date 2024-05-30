@@ -76,21 +76,21 @@ app.layout = html.Div(
             [
                 html.A(
                     html.Img(
-                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/gw.png?raw=true",
+                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/static/gw.png?raw=true",
                         style={"height": "70px", "margin-right": "10px"},
                     ),
                     href="https://geography.columbian.gwu.edu/",
                 ),
                 html.A(
                     html.Img(
-                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/pygis.png?raw=true",
+                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/static/pygis.png?raw=true",
                         style={"height": "70px", "margin-right": "10px"},
                     ),
                     href="https://pygis.io",
                 ),
                 html.A(
                     html.Img(
-                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/youthmappers.webp?raw=true",
+                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/static/youthmappers.webp?raw=true",
                         style={"height": "70px"},
                     ),
                     href="https://www.youthmappers.org/",

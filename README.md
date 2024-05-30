@@ -5,7 +5,7 @@ This is a Dash application that creates a leaderboard of OpenStreetMap contribut
 
 Executable files for windows and linux are currently available for download:
 
-<a href="https://www.dropbox.com/scl/fo/07gchwqkr5kl2c4julr52/AGoB9nqB9aCRBVJnMg5V4CA?rlkey=x23yu6k6utvb98izvjjyexcub&st=mdh91bij&dl=0"> <img src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/download.png?raw=true" alt="exe" height="45"></a>
+<a href="https://www.dropbox.com/scl/fo/07gchwqkr5kl2c4julr52/AGoB9nqB9aCRBVJnMg5V4CA?rlkey=x23yu6k6utvb98izvjjyexcub&st=mdh91bij&dl=0"> <img src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/static/download.png?raw=true" alt="exe" height="45"></a>
 
 **Note:** Make sure to download and update `example_config.yaml`  
 
@@ -70,10 +70,10 @@ In the browser window select or drag your `config.yaml` file to the upload box. 
 
 # Demo
 
-![OSM Leaderboard](https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/leaderboard3.gif?raw=true)
+![OSM Leaderboard](https://github.com/mmann1123/OSM_LeaderBoard/blob/main/static/leaderboard3.gif?raw=true)
 
 # Credits
-[![GWU Geography](https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/gw.png?raw=true)](https://geography.columbian.gwu.edu/)    <a href="https://pygis.io"> <img src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/pygis.png?raw=true" alt="pygis.io" height="70"></a>  <a href="https://www.youthmappers.org/"> <img src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/youthmappers.webp?raw=true" alt="YouthMappers" height="70"></a>
+[![GWU Geography](https://github.com/mmann1123/OSM_LeaderBoard/blob/main/static/gw.png?raw=true)](https://geography.columbian.gwu.edu/)    <a href="https://pygis.io"> <img src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/static/pygis.png?raw=true" alt="pygis.io" height="70"></a>  <a href="https://www.youthmappers.org/"> <img src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/static/youthmappers.webp?raw=true" alt="YouthMappers" height="70"></a>
 <br><br><br>
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.11387666.svg)](https://doi.org/10.5281/zenodo.11387666)
 

@@ -1,4 +1,5 @@
 # %%
+
 import base64
 import io
 import dash
@@ -11,8 +12,6 @@ import geopandas as gpd
 from multiprocessing import Pool, freeze_support
 import webbrowser
 from threading import Timer
-import os
-import signal
 from flask import Flask
 import platform
 import socket
@@ -66,9 +65,8 @@ app.layout = html.Div(
         ),
         dcc.Interval(
             id="interval-component",
-            interval=0.1 * 60 * 1000,  # in milliseconds
+            interval=30 * 1000,  # 30 seconds
             n_intervals=0,
-            max_intervals=12,  # Since 5min * 12 = 60min
         ),
         dcc.Store(
             id="stored-data"
@@ -148,8 +146,7 @@ def handle_upload(contents, filename):
         Output("table", "columns"),
         Output("table", "data"),
     ],
-    Input("interval-component", "n_intervals"),
-    State("stored-data", "data"),
+    [Input("interval-component", "n_intervals"), Input("stored-data", "data")],
 )
 def update_data(n_intervals, stored_data):
     if stored_data:
@@ -234,8 +231,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
 # %%
 # build the app with pyinstaller
 # pyinstaller --onefile --name leaderboard_linux dash_app.py

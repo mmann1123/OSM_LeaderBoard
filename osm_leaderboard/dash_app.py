@@ -6,7 +6,6 @@ from dash import dcc, html, dash_table
 from dash.dependencies import Input, Output, State
 import yaml
 import requests
-import pandas as pd
 from multiprocessing import Pool, freeze_support
 import webbrowser
 from threading import Timer
@@ -174,7 +173,6 @@ def handle_upload(contents, filename):
     return None
 
 
-# Callback to update data based on the interval
 @app.callback(
     [
         Output("output-data-upload", "children"),
@@ -197,32 +195,15 @@ def update_data(n_intervals, stored_data):
             )
 
         user_node_counts = {username: count for username, count in results}
-        df = pd.DataFrame(user_node_counts.items(), columns=["Username", "Node_Count"])
-        df.sort_values(by="Node_Count", ascending=False, inplace=True)
+        sorted_user_node_counts = sorted(
+            user_node_counts.items(), key=lambda item: item[1], reverse=True
+        )
+        data_for_datatable = [
+            {"Username": user, "Node_Count": count}
+            for user, count in sorted_user_node_counts
+        ]
 
-        # Generate a simple GeoDataFrame with a bounding box
         min_lat, min_lon, max_lat, max_lon = map(float, bbox.split(","))
-        # bbox_gpd = gpd.GeoDataFrame.from_features(
-        #     [
-        #         {
-        #             "type": "Feature",
-        #             "properties": {},
-        #             "geometry": {
-        #                 "type": "Polygon",
-        #                 "coordinates": [
-        #                     [
-        #                         [min_lon, min_lat],
-        #                         [min_lon, max_lat],
-        #                         [max_lon, max_lat],
-        #                         [max_lon, min_lat],
-        #                         [min_lon, min_lat],
-        #                     ]
-        #                 ],
-        #             },
-        #         }
-        #     ],
-        #     crs="EPSG:4326",
-        # )
         polygon = Polygon(
             [
                 [min_lon, min_lat],
@@ -232,15 +213,14 @@ def update_data(n_intervals, stored_data):
                 [min_lon, min_lat],
             ]
         )
-        # map_obj = bbox_gpd.explore(style_kwds={"fillColor": "blue", "color": "black"})
         map_obj = explore_shapely_object(polygon, color="blue")
         map_src = map_obj.get_root().render()
 
         return (
             f"Remaining updates: {60-n_intervals}",
             map_src,
-            [{"name": i, "id": i} for i in df.columns],
-            df.to_dict("records"),
+            [{"name": i, "id": i} for i in data_for_datatable[0].keys()],
+            data_for_datatable,
         )
     return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 

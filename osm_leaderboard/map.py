@@ -1,5 +1,6 @@
 import folium
-from shapely.geometry import mapping,  
+from shapely.geometry import mapping
+
 
 def explore_shapely_object(geom, color="blue", popup_attr=None, tooltip_attr=None):
     """

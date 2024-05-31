@@ -1,6 +1,4 @@
 # %%
-
-
 import base64
 import io
 import dash
@@ -9,11 +7,15 @@ from dash.dependencies import Input, Output, State
 import yaml
 import requests
 import pandas as pd
-import geopandas as gpd
-from multiprocessing import Pool
+from multiprocessing import Pool, freeze_support
+import webbrowser
 from threading import Timer
 from flask import Flask
+import platform
+import socket
 import logging
+from shapely.geometry import Polygon
+from osm_leaderboard.map import explore_shapely_object
 
 # Setup logging
 logging.basicConfig(
@@ -63,7 +65,7 @@ app.layout = html.Div(
         ),
         dcc.Interval(
             id="interval-component",
-            interval=60 * 1000,  # 60 seconds
+            interval=60 * 1000,  # 30 seconds
             n_intervals=0,
             max_intervals=60,
         ),
@@ -94,6 +96,8 @@ app.layout = html.Div(
                     href="https://www.youthmappers.org/",
                 ),
                 html.Br(),
+                html.Br(),
+                html.Br(),
                 html.A(
                     html.Img(
                         src="https://zenodo.org/badge/DOI/10.5281/zenodo.11387666.svg"
@@ -107,23 +111,41 @@ app.layout = html.Div(
 )
 
 
+# Convert the newer_date to ISO 8601 format if provided
+def convert_to_iso8601(date_str):
+    if date_str:
+        return f"{date_str}T00:00:00Z"
+    return None
+
+
 # Function to fetch node count for a username
 def fetch_node_count(username, newer_date, bbox):
     logging.debug(
         f"Fetching node count for {username} with filter date {newer_date} and bbox {bbox}"
     )
-    date_filter = f'(newer:"{newer_date}")' if newer_date else ""
+    date_filter = ""
+    if newer_date:
+        date_filter = f'(newer:"{newer_date}")'
+
     query = f"""
     [out:json][timeout:25];
-    node(user:"{username}"){date_filter}({bbox});
+    (
+      node(user:"{username}"){date_filter}({bbox});
+    );
     out count;
     """
+
+    # Send the request to the Overpass API
     response = requests.post(OVERPASS_URL, data={"data": query})
+
+    # Check if the request was successful
     if response.status_code == 200:
+        # Parse the JSON response
         data = response.json()
-        elements = data.get("elements", [])
-        count = elements[0].get("tags", {}).get("nodes", "N/A") if elements else "N/A"
+        # Assuming the count is directly in the "total" field of the JSON. Adjust if necessary.
+        count = data.get("elements", [{}])[0].get("tags", {}).get("nodes", "N/A")
         logging.info(f"Node count for {username}: {count}")
+
         return username, count
     else:
         logging.error(
@@ -166,7 +188,7 @@ def update_data(n_intervals, stored_data):
     if stored_data:
         bbox = stored_data["bbox"]
         usernames = stored_data["usernames"]
-        newer_date = stored_data.get("newer_than_date")
+        newer_date = convert_to_iso8601(stored_data.get("newer_than_date"))
 
         with Pool(processes=len(usernames)) as pool:
             results = pool.starmap(
@@ -180,29 +202,38 @@ def update_data(n_intervals, stored_data):
 
         # Generate a simple GeoDataFrame with a bounding box
         min_lat, min_lon, max_lat, max_lon = map(float, bbox.split(","))
-        bbox_gpd = gpd.GeoDataFrame.from_features(
+        # bbox_gpd = gpd.GeoDataFrame.from_features(
+        #     [
+        #         {
+        #             "type": "Feature",
+        #             "properties": {},
+        #             "geometry": {
+        #                 "type": "Polygon",
+        #                 "coordinates": [
+        #                     [
+        #                         [min_lon, min_lat],
+        #                         [min_lon, max_lat],
+        #                         [max_lon, max_lat],
+        #                         [max_lon, min_lat],
+        #                         [min_lon, min_lat],
+        #                     ]
+        #                 ],
+        #             },
+        #         }
+        #     ],
+        #     crs="EPSG:4326",
+        # )
+        polygon = Polygon(
             [
-                {
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": {
-                        "type": "Polygon",
-                        "coordinates": [
-                            [
-                                [min_lon, min_lat],
-                                [min_lon, max_lat],
-                                [max_lon, max_lat],
-                                [max_lon, min_lat],
-                                [min_lon, min_lat],
-                            ]
-                        ],
-                    },
-                }
-            ],
-            crs="EPSG:4326",
+                [min_lon, min_lat],
+                [min_lon, max_lat],
+                [max_lon, max_lat],
+                [max_lon, min_lat],
+                [min_lon, min_lat],
+            ]
         )
-
-        map_obj = bbox_gpd.explore(style_kwds={"fillColor": "blue", "color": "black"})
+        # map_obj = bbox_gpd.explore(style_kwds={"fillColor": "blue", "color": "black"})
+        map_obj = explore_shapely_object(polygon, color="blue")
         map_src = map_obj.get_root().render()
 
         return (
@@ -220,6 +251,10 @@ def open_browser(port):
 
 def main():
     logging.info("Executing main block.")
+    # Ensure compatibility with Windows exe for threading
+    if platform.system() == "Windows":
+        freeze_support()
+
     try:
         # Setup a socket to dynamically find a free port
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -240,8 +275,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
 # %%
 # build the app with pyinstaller
 # pyinstaller --onefile --name leaderboard_linux dash_app.py

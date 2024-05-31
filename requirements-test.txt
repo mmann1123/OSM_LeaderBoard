@@ -3,4 +3,5 @@ psutil
 multiprocess
 selenium
 bs4
-
+multiprocess
+percy

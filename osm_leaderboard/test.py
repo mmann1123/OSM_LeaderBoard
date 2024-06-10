@@ -168,7 +168,7 @@ def fetch_user_edits_today(username):
 
 
 # Function to create a map with user edits
-def create_map(user_edits, map_file):
+def create_map(user_edits):
     if user_edits:
         # Create a base map
         m = folium.Map(location=[0, 0], zoom_start=2)
@@ -196,8 +196,7 @@ def create_map(user_edits, map_file):
                     popup=f"{element['type'].capitalize()} ID: {element['id']}",
                 ).add_to(m)
 
-        # Save map to an HTML file
-        m.save(map_file)
+        return m.get_root().render()
 
 
 # Callback to handle the file upload and initialize data
@@ -275,12 +274,11 @@ def update_data(n_intervals, stored_data):
         # Update the map with today's edits of the top user
         top_user = df.iloc[0]["Username"]
         user_edits = fetch_user_edits_today(top_user)
-        map_file = "user_edits_map.html"
-        create_map(user_edits, map_file)
+        map_object = create_map(user_edits)
 
         return (
             f"Data updated at interval {n_intervals}",
-            open(map_file).read(),
+            map_object,
             [{"name": i, "id": i} for i in df.columns],
             df.to_dict("records"),
         )

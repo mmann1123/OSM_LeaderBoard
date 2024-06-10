@@ -310,6 +310,9 @@ def update_data(n_intervals, stored_data, init_flag):
     )
 
 
+#
+
+
 def open_browser(port):
     webbrowser.open_new(f"http://127.0.0.1:{port}/")
 

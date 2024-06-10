@@ -328,7 +328,7 @@ def main():
             logger.info(f"Assigned port {port} for the app.")
 
         # Open a web browser pointed at the URL
-        # Timer(1, open_browser, args=[port]).start()
+        Timer(1, open_browser, args=[port]).start()
         logger.info(f"Browser will open at http://127.0.0.1:{port}/")
 
         # Run the Dash app on the dynamically assigned port

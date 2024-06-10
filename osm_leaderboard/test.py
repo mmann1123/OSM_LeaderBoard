@@ -6,19 +6,26 @@ from dash import dcc, html, dash_table
 from dash.dependencies import Input, Output, State
 import yaml
 import requests
-import pandas as pd
-import geopandas as gpd
-import folium
-import webbrowser
-import os
 from multiprocessing import Pool, freeze_support
+import webbrowser
+from threading import Timer
 from flask import Flask
-from datetime import datetime
 import platform
 import socket
 import logging
-from threading import Timer
+from shapely.geometry import Polygon, Point, LineString
+from osm_leaderboard.map import explore_shapely_object
+from datetime import datetime
+import time
 
+# Setup logging
+logging.basicConfig(
+    filename="app.log",
+    filemode="w",
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.DEBUG,
+)
+logger = logging.getLogger(__name__)
 
 # Define the Overpass API endpoint
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
@@ -60,34 +67,38 @@ app.layout = html.Div(
         ),
         dcc.Interval(
             id="interval-component",
-            interval=30 * 1000,  # 30 seconds
+            interval=20 * 1000,  # 20 seconds
             n_intervals=0,
+            max_intervals=60,
         ),
         dcc.Store(
             id="stored-data"
         ),  # Hidden storage for persisting data across callbacks
+        dcc.Store(
+            id="init-flag", data={"initialized": False}
+        ),  # Store for initialization flag
         html.Div(
             [
                 html.A(
                     html.Img(
-                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/gw.png?raw=true",
-                        style={"height": "70px", "margin": "4px"},
+                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/static/gw.png?raw=true",
+                        style={"height": "70px", "margin-right": "10px"},
                     ),
                     href="https://geography.columbian.gwu.edu/",
                 ),
                 html.A(
                     html.Img(
-                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/pygis.png?raw=true",
-                        style={"height": "70px", "margin": "4px"},
+                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/static/pygis.png?raw=true",
+                        style={"height": "70px", "margin-right": "10px"},
                     ),
                     href="https://pygis.io",
                 ),
                 html.A(
                     html.Img(
-                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/video/youthmappers.webp?raw=true",
-                        style={"height": "70px", "margin": "4px"},
+                        src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/static/youthmappers.webp?raw=true",
+                        style={"height": "70px"},
                     ),
-                    href="https://pygis.io",
+                    href="https://www.youthmappers.org/",
                 ),
                 html.Br(),
                 html.Br(),
@@ -114,6 +125,9 @@ def convert_to_iso8601(date_str):
 
 # Function to fetch node count for a username
 def fetch_node_count(username, newer_date, bbox):
+    logger.debug(
+        f"Fetching node count for {username} with filter date {newer_date} and bbox {bbox}"
+    )
     date_filter = ""
     if newer_date:
         date_filter = f'(newer:"{newer_date}")'
@@ -135,14 +149,38 @@ def fetch_node_count(username, newer_date, bbox):
         data = response.json()
         # Assuming the count is directly in the "total" field of the JSON. Adjust if necessary.
         count = data.get("elements", [{}])[0].get("tags", {}).get("nodes", "N/A")
+        logger.info(f"Node count for {username}: {count}")
+
         return username, count
     else:
+        logger.error(
+            f"Failed to fetch node count for {username}: HTTP {response.status_code}"
+        )
         return username, "N/A"
+
+
+def create_shapely_object(elements):
+    shapely_objects = []
+
+    for element in elements:
+        if element["type"] == "node":
+            # Create a Point for a node
+            shapely_objects.append(Point(element["lon"], element["lat"]))
+        elif element["type"] == "way":
+            # Create a LineString for a way
+            # Assuming 'nodes' is a list of (lon, lat) tuples
+            shapely_objects.append(LineString(element["nodes"]))
+        elif element["type"] == "relation":
+            # Create a Polygon for a relation
+            # Assuming 'members' is a list of (lon, lat) tuples
+            shapely_objects.append(Polygon(element["members"]))
+
+    return shapely_objects
 
 
 # Function to fetch user edits today
 def fetch_user_edits_today(username):
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = datetime.now().strftime("%Y-%m-%d")
     query = f"""
     [out:json][timeout:25];
     (
@@ -160,44 +198,18 @@ def fetch_user_edits_today(username):
     if response.status_code == 200:
         data = response.json()
         if "elements" in data and len(data["elements"]) > 0:
-            return data["elements"]
+            logger.debug(
+                f"User edits today for {username}: {len(data['elements'])} elements found"
+            )
+            return create_shapely_object(data["elements"])
         else:
+            logger.debug(f"No edits found for {username} today")
             return []
     else:
+        logger.error(
+            f"Failed to fetch user edits for {username}: HTTP {response.status_code}"
+        )
         response.raise_for_status()
-
-
-# Function to create a map with user edits
-def create_map(user_edits, map_file):
-    if user_edits:
-        # Create a base map
-        m = folium.Map(location=[0, 0], zoom_start=2)
-
-        for element in user_edits:
-            if element["type"] == "node":
-                folium.CircleMarker(
-                    location=[element["lat"], element["lon"]],
-                    radius=2,
-                    color="blue",
-                    fill=True,
-                    fill_color="blue",
-                    fill_opacity=0.6,
-                    popup=f"Node ID: {element['id']}",
-                ).add_to(m)
-            elif element["type"] in ["way", "relation"]:
-                coords = []
-                for member in element["geometry"]:
-                    coords.append([member["lat"], member["lon"]])
-                folium.PolyLine(
-                    locations=coords,
-                    color="blue",
-                    weight=2,
-                    opacity=0.6,
-                    popup=f"{element['type'].capitalize()} ID: {element['id']}",
-                ).add_to(m)
-
-        # Save map to an HTML file
-        m.save(map_file)
 
 
 # Callback to handle the file upload and initialize data
@@ -213,23 +225,26 @@ def handle_upload(contents, filename):
         try:
             if "yaml" in filename:
                 config = yaml.safe_load(io.StringIO(decoded.decode("utf-8")))
+                logger.info(f"Config file {filename} uploaded and processed")
                 return config  # Store the entire configuration
         except Exception as e:
+            logger.error("Failed to process uploaded file:", exc_info=True)
             return None
     return None
 
 
-# Callback to update data based on the interval
 @app.callback(
     [
         Output("output-data-upload", "children"),
         Output("map", "srcDoc"),
         Output("table", "columns"),
         Output("table", "data"),
+        Output("init-flag", "data"),
     ],
     [Input("interval-component", "n_intervals"), Input("stored-data", "data")],
+    State("init-flag", "data"),
 )
-def update_data(n_intervals, stored_data):
+def update_data(n_intervals, stored_data, init_flag):
     if stored_data:
         bbox = stored_data["bbox"]
         usernames = stored_data["usernames"]
@@ -242,49 +257,57 @@ def update_data(n_intervals, stored_data):
             )
 
         user_node_counts = {username: count for username, count in results}
-        df = pd.DataFrame(user_node_counts.items(), columns=["Username", "Node_Count"])
-        df.sort_values(by="Node_Count", ascending=False, inplace=True)
+        sorted_user_node_counts = sorted(
+            user_node_counts.items(), key=lambda item: item[1], reverse=True
+        )
+        data_for_datatable = [
+            {"Username": user, "Node_Count": count}
+            for user, count in sorted_user_node_counts
+        ]
 
-        # Generate a simple GeoDataFrame with a bounding box
         min_lat, min_lon, max_lat, max_lon = map(float, bbox.split(","))
-        bbox_gpd = gpd.GeoDataFrame.from_features(
+        polygon = Polygon(
             [
-                {
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": {
-                        "type": "Polygon",
-                        "coordinates": [
-                            [
-                                [min_lon, min_lat],
-                                [min_lon, max_lat],
-                                [max_lon, max_lat],
-                                [max_lon, min_lat],
-                                [min_lon, min_lat],
-                            ]
-                        ],
-                    },
-                }
-            ],
-            crs="EPSG:4326",
+                [min_lon, min_lat],
+                [min_lon, max_lat],
+                [max_lon, max_lat],
+                [max_lon, min_lat],
+                [min_lon, min_lat],
+            ]
         )
 
-        map_obj = bbox_gpd.explore(style_kwds={"fillColor": "blue", "color": "black"})
-        map_src = map_obj.get_root().render()
+        if not init_flag["initialized"]:
+            map_obj = explore_shapely_object(polygon, color="blue")
+            map_src = map_obj.get_root().render()
+            init_flag["initialized"] = True
+            logger.info(f"BBOX map initialized, initialization_flag switched to True")
+        else:
+            # Update the map with today's edits of the top user
+            logger.info("Updating map with today's edits")
 
-        # Update the map with today's edits of the top user
-        top_user = df.iloc[0]["Username"]
-        user_edits = fetch_user_edits_today(top_user)
-        map_file = "user_edits_map.html"
-        create_map(user_edits, map_file)
+            # get the first username in data_for_datatable
+            top_user = data_for_datatable[0]["Username"]
+            user_edits = fetch_user_edits_today(top_user)
+            logger.info(f"{user_edits} edits found for {top_user} today")
+            for edit in user_edits:
+                map_obj = explore_shapely_object(edit, color="blue")
+                map_src = map_obj.get_root().render()
+                time.sleep(1)
 
         return (
-            f"Data updated at interval {n_intervals}",
-            open(map_file).read(),
-            [{"name": i, "id": i} for i in df.columns],
-            df.to_dict("records"),
+            f"Remaining updates: {60-n_intervals}",
+            map_src,
+            [{"name": i, "id": i} for i in data_for_datatable[0].keys()],
+            data_for_datatable,
+            init_flag,
         )
-    return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+    return (
+        dash.no_update,
+        dash.no_update,
+        dash.no_update,
+        dash.no_update,
+        dash.no_update,
+    )
 
 
 def open_browser(port):
@@ -292,7 +315,7 @@ def open_browser(port):
 
 
 def main():
-    print("This app brought to you by https://pygis.io")
+    logger.info("Executing main block.")
     # Ensure compatibility with Windows exe for threading
     if platform.system() == "Windows":
         freeze_support()
@@ -302,14 +325,17 @@ def main():
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind(("", 0))  # Bind to a free port provided by the host.
             port = s.getsockname()[1]
+            logger.info(f"Assigned port {port} for the app.")
 
         # Open a web browser pointed at the URL
-        Timer(1, open_browser, args=[port]).start()
+        # Timer(1, open_browser, args=[port]).start()
+        logger.info(f"Browser will open at http://127.0.0.1:{port}/")
 
         # Run the Dash app on the dynamically assigned port
         app.run_server(port=port, debug=False)
+        logger.info("Application has started.")
     except Exception as e:
-        print(f"Failed to start the application: {e}")
+        logger.error("Failed to start the application:", exc_info=True)
 
 
 if __name__ == "__main__":

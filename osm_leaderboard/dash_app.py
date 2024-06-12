@@ -14,7 +14,7 @@ import platform
 import socket
 import logging
 from shapely.geometry import Polygon
-from osm_leaderboard.map import explore_shapely_object
+from map import explore_shapely_object
 
 # Setup logging
 logging.basicConfig(
@@ -232,7 +232,7 @@ def open_browser(port):
 def main():
     logging.info("Executing main block.")
     # Ensure compatibility with Windows exe for threading
-    if platform.system() == "Windows":
+    if platform.system() in ["Windows", "Darwin"]:
         freeze_support()
 
     try:

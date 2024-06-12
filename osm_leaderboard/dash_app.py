@@ -14,7 +14,7 @@ import platform
 import socket
 import logging
 from shapely.geometry import Polygon
-from map import explore_shapely_object
+from osm_leaderboard.map import explore_shapely_object
 
 # Setup logging
 logging.basicConfig(

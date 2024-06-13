@@ -9,19 +9,26 @@ Executable files for `OSx`, `Windows` and `linux` are available for download:
 
 **Note:** Make sure to download and update `example_config.yaml`  
 
-## Python Installation & Execution
+## Running the Application
+1) Update the contents of `config.yaml` file with the desired bounding box, usernames, and optional date.
 
-Install directly from GitHub using a terminal window:
+2) Run the application using one of the following methods: <br> 
 
-```bash
-pip install git+https://github.com/mmann1123/OSM_LeaderBoard.git
-```
+    A) **From the downloaded executable file**: Double click on the downloaded executable file to run the application. 
 
-Once installed simply type:
+    B) **From Python**: From the terminal window, navigate to the directory where the `dash_app.py` file is located. To download and run the application, use the following command:
 
-```bash
-leaderboard
-```
+      ```bash
+      pip install git+https://github.com/mmann1123/OSM_LeaderBoard.git
+      ```
+
+      Once installed simply type:
+
+      ```bash
+      leaderboard
+      ```
+
+  3) Then in the browser window select or drag your `config.yaml` file to the upload box. The leaderboard will be displayed in the browser window once the api calls are complete. 
 
 ## Configuration
 
@@ -56,19 +63,6 @@ newer_than_date: "2010-12-01"
 ```
 
 
-## Running the Application
-
-1) **From the downloaded executable file**: double click on the file to run the application. Then select or drag your `config.yaml` file to the upload box. The leaderboard will be displayed in the browser window once the api calls are complete.
-
-2) **From Python**: From the terminal window, navigate to the directory where the `dash_app.py` file is located. To download and run the application, use the following command:
-
-    ```bash
-    git clone https://github.com/mmann1123/OSM_LeaderBoard.git
-    cd OSM_LeaderBoard/osm_leaderboard
-    python dash_app.py
-    ```
-
-    In the browser window select or drag your `config.yaml` file to the upload box. The leaderboard will be displayed in the browser window once the api calls are complete.
 
 
 # Demo

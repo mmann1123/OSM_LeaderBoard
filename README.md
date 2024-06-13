@@ -3,7 +3,7 @@ This is a Dash application that creates a leaderboard of OpenStreetMap contribut
 
 ## Executables
 
-Executable files for windows and linux are currently available for download:
+Executable files for `OSx`, `Windows` and `linux` are available for download:
 
 <a href="https://www.dropbox.com/scl/fo/07gchwqkr5kl2c4julr52/AGoB9nqB9aCRBVJnMg5V4CA?rlkey=x23yu6k6utvb98izvjjyexcub&st=mdh91bij&dl=0"> <img src="https://github.com/mmann1123/OSM_LeaderBoard/blob/main/static/download.png?raw=true" alt="exe" height="45"></a>
 
@@ -58,14 +58,17 @@ newer_than_date: "2010-12-01"
 
 ## Running the Application
 
-To run the application, use the following command:
+1) **From the downloaded executable file**: double click on the file to run the application. Then select or drag your `config.yaml` file to the upload box. The leaderboard will be displayed in the browser window once the api calls are complete.
 
-```bash
-cd OSM_LeaderBoard
-python dash_app.py
-```
+2) **From Python**: From the terminal window, navigate to the directory where the `dash_app.py` file is located. To download and run the application, use the following command:
 
-In the browser window select or drag your `config.yaml` file to the upload box. The leaderboard will be displayed in the browser window once the api calls are complete.
+    ```bash
+    git clone https://github.com/mmann1123/OSM_LeaderBoard.git
+    cd OSM_LeaderBoard/osm_leaderboard
+    python dash_app.py
+    ```
+
+    In the browser window select or drag your `config.yaml` file to the upload box. The leaderboard will be displayed in the browser window once the api calls are complete.
 
 
 # Demo

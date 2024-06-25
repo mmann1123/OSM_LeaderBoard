@@ -118,21 +118,47 @@ def convert_to_iso8601(date_str):
 
 
 # Function to fetch node count for a username
-def fetch_node_count(username, newer_date, bbox):
+def fetch_node_count(username, newer_date, area):
     logging.debug(
-        f"Fetching node count for {username} with filter date {newer_date} and bbox {bbox}"
+        f"Fetching node count for {username} with filter date {newer_date} and area {area}"
     )
     date_filter = ""
     if newer_date:
         date_filter = f'(newer:"{newer_date}")'
 
-    query = f"""
-    [out:json][timeout:25];
-    (
-      node(user:"{username}"){date_filter}({bbox});
-    );
-    out count;
-    """
+    if ":" in area:  # is OSM id
+        if "way" in area:
+            area_fix = f"way({area.split(':')[1]});map_to_area"
+        elif "rel" in area:
+            area_fix = f"rel({area.split(':')[1]});map_to_area"
+        else:
+            logging.error(
+                f"Area not understood"
+            )
+            return username, "N/A"
+
+        query = f"""
+            [out:json][timeout:25];
+            {area_fix}->.searchArea;
+            (
+              node(user:"{username}"){date_filter}(area.searchArea);
+            );
+            out count;
+            """
+
+    elif "," in area:  # is bbox
+        query = f"""
+            [out:json][timeout:25];
+            (
+              node(user:"{username}"){date_filter}({area});
+            );
+            out count;
+            """
+    else:
+        logging.error(
+            f"Area not understood"
+        )
+        return username, "N/A"
 
     # Send the request to the Overpass API
     response = requests.post(OVERPASS_URL, data={"data": query})
@@ -184,14 +210,14 @@ def handle_upload(contents, filename):
 )
 def update_data(n_intervals, stored_data):
     if stored_data:
-        bbox = stored_data["bbox"]
+        area = stored_data["area"]
         usernames = stored_data["usernames"]
         newer_date = convert_to_iso8601(stored_data.get("newer_than_date"))
 
         with Pool(processes=len(usernames)) as pool:
             results = pool.starmap(
                 fetch_node_count,
-                [(username, newer_date, bbox) for username in usernames],
+                [(username, newer_date, area) for username in usernames],
             )
 
         user_node_counts = {username: count for username, count in results}
@@ -203,21 +229,54 @@ def update_data(n_intervals, stored_data):
             for user, count in sorted_user_node_counts
         ]
 
-        min_lat, min_lon, max_lat, max_lon = map(float, bbox.split(","))
-        polygon = Polygon(
-            [
-                [min_lon, min_lat],
-                [min_lon, max_lat],
-                [max_lon, max_lat],
-                [max_lon, min_lat],
-                [min_lon, min_lat],
-            ]
-        )
+        # Draw Polygon
+        if ":" in area:  # is OSM id
+            if "way" in area:
+                query = f"""
+                        [out:json][timeout:25];
+                        way({area.split(':')[1]});
+                        out geom;
+                        """
+
+                response = requests.post(OVERPASS_URL, data={"data": query})
+
+                if response.status_code == 200:
+                    polygon_in_json = response.json()
+                    coord_list = []
+                    for node in polygon_in_json["elements"][0]["geometry"]:
+                        coord_list.append((node["lon"], node["lat"]))
+                    polygon = Polygon(coord_list)
+
+            elif "rel" in area:
+                polygon = Polygon([[0, 0], [0, 0], [0, 0], [0, 0]])  # TODO: Visualize OSM Multipolygons
+            else:
+                logging.error(
+                    f"Area not understood"
+                )
+                return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+        elif "," in area:  # is bbox
+            min_lat, min_lon, max_lat, max_lon = map(float, area.split(","))
+            polygon = Polygon(
+                [
+                    [min_lon, min_lat],
+                    [min_lon, max_lat],
+                    [max_lon, max_lat],
+                    [max_lon, min_lat],
+                    [min_lon, min_lat],
+                ]
+            )
+        else:
+            logging.error(
+                f"Area not understood"
+            )
+            return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
         map_obj = explore_shapely_object(polygon, color="blue")
         map_src = map_obj.get_root().render()
 
         return (
-            f"Remaining updates: {60-n_intervals}",
+            f"Remaining updates: {60 - n_intervals}",
             map_src,
             [{"name": i, "id": i} for i in data_for_datatable[0].keys()],
             data_for_datatable,
